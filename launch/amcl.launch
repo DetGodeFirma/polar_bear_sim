@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+  <arg name="odom_frame_id"   default="odom"/>
+  <arg name="base_frame_id"   default="base_link"/>
+  <arg name="global_frame_id" default="map"/>
+  <arg name="odom_topic" default="odom" />
+  <arg name="left_laser_topic" default="/laser/left/scan" />
+  <arg name="right_laser_topic" default="/laser/right/scan" />
+  <arg name="initial_pose_x" default="0.0"/>
+  <arg name="initial_pose_y" default="0.0"/>
+  <arg name="initial_pose_a" default="0.0"/>
+
+  <arg name="laser_topic" default="/laser/combined/scan"/>
+
+  <!-- AMCL supports multiple LiDAR scans as long as they come on the same topic. We therefore fuse the left and right scan into one topic -->
+  <node pkg="topic_tools" type="relay" name="laser_left_relay" output="screen" args="$(arg left_laser_topic) $(arg laser_topic)">
+    <param name="lazy" value="true"/>
+  </node>
+  <node pkg="topic_tools" type="relay" name="laser_right_relay" output="screen" args="$(arg right_laser_topic) $(arg laser_topic)">
+    <param name="lazy" value="true"/>
+  </node>
+
+  <!-- Map of the lab -->
+  <arg name="map_file" default="$(find polar_bear_sim)/world/combine_offices.yaml"/>-->
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" output="screen" />
+
+  <!-- AMCL -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <param name="use_map_topic"             value="true"/>
+    <param name="odom_model_type"           value="omni-corrected"/>
+    <!-- estimated rotational motion noise of the odometry during rotational motion -->
+    <!-- alpha1 and 4 are flipped until melodic https://github.com/ros-planning/navigation/issues/499
+         change when updating from Kinetic-->
+    <param name="odom_alpha4"               value="0.5"/>
+    <!-- estimated rotational motion noise of the odometry during translation motion -->
+    <param name="odom_alpha2"               value="2.5"/>
+    <!-- estimated translation motion noise of the odometry during translation motion -->
+    <param name="odom_alpha3"               value="5.0"/>
+    <!-- estimated translation motion noise of the odometry during rotational motion -->
+    <param name="odom_alpha1"               value="0.5"/>
+    <param name="odom_alpha5"               value="0.4"/>
+    <param name="gui_publish_rate"          value="10.0"/>
+    <param name="laser_max_beams"           value="50"/>
+    <param name="laser_min_range"           value="-1.0"/>
+    <param name="laser_max_range"           value="-1.0"/>
+    <param name="min_particles"             value="10"/>
+    <param name="max_particles"             value="100"/>
+    <param name="kld_err"                   value="0.01"/>
+    <param name="kld_z"                     value="0.99"/>
+    <param name="laser_z_hit"               value="0.5"/>
+    <param name="laser_z_short"             value="0.05"/>
+    <param name="laser_z_max"               value="0.05"/>
+    <param name="laser_z_rand"              value="0.5"/>
+    <param name="laser_sigma_hit"           value="0.2"/>
+    <param name="laser_lambda_short"        value="0.01"/>
+    <param name="laser_model_type"          value="likelihood_field"/> <!-- The likelihood_field model uses only z_hit and z_rand weights. -->
+    <param name="laser_likelihood_max_dist" value="5"/>
+    <param name="update_min_d"              value="0.02"/>
+    <param name="update_min_a"              value="0.2"/>
+    <param name="odom_frame_id"             value="$(arg odom_frame_id)"/>
+    <param name="base_frame_id"             value="$(arg base_frame_id)"/>
+    <param name="global_frame_id"           value="$(arg global_frame_id)"/>
+    <param name="resample_interval"         value="1"/>
+    <param name="transform_tolerance"       value="0.1"/>
+    <param name="recovery_alpha_slow"       value="0.0"/>
+    <param name="recovery_alpha_fast"       value="0.0"/>
+    <param name="initial_pose_x"            value="$(arg initial_pose_x)"/>
+    <param name="initial_pose_y"            value="$(arg initial_pose_y)"/>
+    <param name="initial_pose_a"            value="$(arg initial_pose_a)"/>
+    <remap from="scan"                      to="$(arg laser_topic)"/>
+  </node>
+
+</launch>

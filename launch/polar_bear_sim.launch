@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+  <param name="use_sim_time" value="true" />
+  
+  <arg name="dashboard" default="false" />
+
+  <group if="$(arg dashboard)">
+    <node name="rviz" pkg="rviz" type="rviz"
+          args="-d $(find polar_bear_sim)/config/stage.rviz" />
+    <node name="steering" pkg="rqt_robot_steering" type="rqt_robot_steering" />
+  </group>
+
+  <include file="$(find polar_bear_sim)/launch/stage.launch">
+    <arg name="headless" value="false" if="$(arg dashboard)" />
+  </include>
+
+  <include file="$(find polar_bear_sim)/launch/amcl.launch" />
+
+  <include file="$(find polar_bear_sim)/launch/dwa_planner.launch" />
+
+</launch>

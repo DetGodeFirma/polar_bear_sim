@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<launch>
+
+  <arg name="headless" default="true" />
+
+  <arg name="stage_args" value="$(find polar_bear_sim)/world/combine_offices.world" unless="$(arg headless)" />
+  <arg name="stage_args" value="-g $(find polar_bear_sim)/world/combine_offices.world" if="$(arg headless)" />
+  <node name="simulator" pkg="stage_ros" type="stageros"
+        args="$(arg stage_args)">
+    <remap from="base_scan_0" to="laser/left/scan" />
+    <remap from="base_scan_1" to="laser/right/scan" />
+  </node>
+
+</launch>
